@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">MatrixLiveWallpaper</string>
+    <string name="main_activity_title">Matrix Live Wallpaper</string>
+    <string name="setting_label_text_color">text color</string>
+    <string name="setting_label_charset">charset</string>
+    <string name="setting_btn_apply_wallpaper">Preview &amp; Apply</string>
+
+    <string-array name="charset_spinner_options">
+        <item>Japanese(にほんご)</item>
+        <item>Korean(한국어)</item>
+        <item>Thai(ไทย)</item>
+        <item>Russian(русский)</item>
+    </string-array>
 </resources>

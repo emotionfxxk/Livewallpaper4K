@@ -33,7 +33,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
         private var chWidth:Float = 0f
         private var dropsEndIndex = mutableListOf<Int>()
         private var stringMatrix  = mutableListOf<String>()
-        private var lenOfVisibleString = 0
+        //private var lenOfVisibleString = 0
         private var lenOfVerticalString = 0
 
         private lateinit var matrixPaint:Paint
@@ -92,9 +92,6 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
             matrixColumns = ( width / chWidth).toInt()
             lenOfVerticalString = (height / matrixPaint.textSize).toInt() + 1;
-            lenOfVisibleString = (lenOfVerticalString / 2f).toInt()
-            Log.d("GAGA", "displayMetrics H:${resources.displayMetrics.heightPixels}")
-
 
             for(i in 0 until matrixColumns) {
                 dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
@@ -111,8 +108,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
                     drawingHandler?.postDelayed(this, speedInMillion)
                 }
             }
-            Log.d("GAGA", "onSurfaceCreated  frame H:${height}")
-            // 创建绘制缓冲区
+
             bufferBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             bufferCanvas = Canvas(bufferBitmap!!)
 
