@@ -53,4 +53,11 @@ class MatrixPreviewView @JvmOverloads constructor(
         super.onDraw(canvas)
         renderer.drawMatrixFrame(canvas)
     }
+
+    fun updateCharset() {
+        renderer.updateCharset()
+    }
+    fun updateTextColor() {
+        renderer.updateTextColor()
+    }
 }

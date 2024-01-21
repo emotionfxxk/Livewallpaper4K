@@ -14,11 +14,9 @@ import android.view.View
 import kotlin.random.Random
 
 class MatrixRenderer {
-    private var matrixCharset : String = "゠アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレワヰヱヲンヺ・ーヽヿ0123456789"
-    //private var matrixCharset : String = "゠ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ0123456789"
-    //private var matrixCharset : String = "゠абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789"
-    //private var matrixCharset : String = "゠กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮะาำเแโใไๅ็่้๊๋์0123456789"
-    //private var matrixCharset : String = "鼠牛虎兔龍蛇馬羊猴雞狗豬水火木金土仁義禮智信命愛和誌氣力道喜福夢強心忠勇德禪緣壽榮幸美花富錢囍豐貴神恨死活鬼高低矮靜醜輸勝贏飛悲歡吻怒笑性煩誠忍弟姐妹妻夫父母友春夏秋冬"
+    private lateinit var spUtil:PreferenceUtils
+    private lateinit var utils:Utils
+    private lateinit var matrixCharset : String
 
     private var speedInMillion:Long = 60
     private var matrixTextSize:Float =  10f // size in dip
@@ -26,7 +24,6 @@ class MatrixRenderer {
     private var chWidth:Float = 0f
     private var dropsEndIndex = mutableListOf<Int>()
     private var stringMatrix  = mutableListOf<String>()
-    //private var lenOfVisibleString = 0
     private var lenOfVerticalString = 0
     private var isRendering = false
     private var isInitialized = false
@@ -40,10 +37,10 @@ class MatrixRenderer {
     private var bufferCanvas: Canvas? = null
 
     private var screenDensity = 0f
+    private var mWidth = 0
+    private var mHeight = 0
     private var myView:View?=null
     fun startRendering() {
-        //Log.d("GAGA", "startRendering started?=${isRendering}" +
-                //"initialized?=$isInitialized")
         if (!isRendering && isInitialized) {
             isRendering = true
             runnable?.let {
@@ -67,26 +64,62 @@ class MatrixRenderer {
         }
         return sb.toString()
     }
-    fun initRenderer(view:View, context: Context, width:Int, height:Int) {
-        //Log.d("GAGA", "initRenderer!!!");
-        if (isInitialized) return
-        myView = view
-        isInitialized = true
-        screenDensity = context.resources.displayMetrics.density
+    fun updateCharset() {
+        if (!isInitialized) return
+        stopRendering()
+        matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+        chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
+        matrixColumns = ( mWidth / chWidth).toInt()
+        lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
+
+        dropsEndIndex.clear()
+        stringMatrix.clear()
+        for(i in 0 until matrixColumns) {
+            dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
+            stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+        }
+        startRendering()
+    }
+    fun updateTextColor() {
+        if (!isInitialized) return
+        stopRendering()
         matrixPaint = Paint().apply {
-            color = Color.GREEN
+            color = spUtil.getMatrixTextColor()
             textSize = matrixTextSize * screenDensity
             isAntiAlias = true
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL) // 设置字体样式
             maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.SOLID)
         }
-        matrixPaint.setShadowLayer(40f, 2f, 2f, Color.GREEN)
+        matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
+        startRendering()
+    }
+    fun initRenderer(view:View, context: Context, width:Int, height:Int) {
+        if (isInitialized) return
+        myView = view
+        isInitialized = true
+        mWidth = width
+        mHeight = height
+        spUtil = PreferenceUtils(context)
+        utils = Utils(context)
+
+        matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+
+        screenDensity = context.resources.displayMetrics.density
+        matrixPaint = Paint().apply {
+            color = spUtil.getMatrixTextColor()
+            textSize = matrixTextSize * screenDensity
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL) // 设置字体样式
+            maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.SOLID)
+        }
+        matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
 
 
         chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
-        matrixColumns = ( width / chWidth).toInt()
-        lenOfVerticalString = (height / matrixPaint.textSize).toInt() + 1;
+        matrixColumns = ( mWidth / chWidth).toInt()
+        lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
         for(i in 0 until matrixColumns) {
             dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
@@ -110,8 +143,6 @@ class MatrixRenderer {
     }
 
     fun drawMatrixFrame(canvas: Canvas){
-        //var canvas:Canvas? = null
-        //Log.d("GAGA", "draw matrix frame")
         try {
             bufferCanvas!!.drawColor(0x10000000)
             for (col in 0 until matrixColumns) {
@@ -127,10 +158,8 @@ class MatrixRenderer {
                     stringMatrix[col] = generateRandomString(matrixCharset, lenOfVerticalString)
                 }
             }
-            //canvas = holder.lockCanvas()
             canvas.drawBitmap(bufferBitmap!!, 0f, 0f, null)
         } finally {
-            //canvas?.let { holder.unlockCanvasAndPost(it) }
         }
     }
 }

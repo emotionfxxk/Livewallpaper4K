@@ -1,5 +1,6 @@
 package com.argon.blue.matrixlivewallpaper
 
+import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.ComponentName
 import android.content.Intent
@@ -23,15 +24,18 @@ import com.github.dhaval2404.colorpicker.model.ColorSwatch;
 
 
 class MainActivity : AppCompatActivity() {
+    lateinit var spUtil:PreferenceUtils
+    lateinit var previewView:MatrixPreviewView
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        spUtil = PreferenceUtils(this)
 
         // 获取状态栏的 Window 对象
         val window: Window = window
-
         // 设置状态栏颜色
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
@@ -42,17 +46,25 @@ class MainActivity : AppCompatActivity() {
         val adapter = ArrayAdapter<String>(this, R.layout.spinner_item, options)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
+
+        previewView = findViewById(R.id.matrix_preview)
+
+        val savedCharsetOpt = spUtil.getMatrixCharset()
+        val defaultPos = adapter.getPosition(savedCharsetOpt)
+        spinner.setSelection(defaultPos)
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // 在选项选中时执行的代码
                 val selectedOption = parent?.getItemAtPosition(position).toString()
-                // 处理选中的选项
+                spUtil.putMatrixCharset(selectedOption)
+                previewView.updateCharset()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                // 当没有选项选中时执行的代码
             }
         }
+
+        val textColorIndicator:MaterialButton = findViewById(R.id.text_color_indicator)
+        textColorIndicator.iconTint = ColorStateList.valueOf(spUtil.getMatrixTextColor())
 
         val textColorPicker:View = findViewById(R.id.text_color_card)
         textColorPicker.setOnClickListener(View.OnClickListener {
@@ -62,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Pick Text Color")
                 .setColorShape(ColorShape.CIRCLE)
                 .setColorSwatch(ColorSwatch._500)
-                .setDefaultColor(com.github.dhaval2404.colorpicker.R.color.green_500)
+                .setDefaultColor(spUtil.getMatrixTextColor())
                 .setTickColorPerCard(false)
                 .setColorListener(object : ColorListener {
                     override fun onColorSelected(color: Int, colorHex: String) {
@@ -70,7 +82,9 @@ class MainActivity : AppCompatActivity() {
                         //Log.e("TD_TRACE", "select color: $color")
                         //mLEDView.setTextColor(color)
                         //prefUtil.putTextColor(color)
-                        //textColorIndicator.setIconTint(ColorStateList.valueOf(color))
+                        textColorIndicator.iconTint = ColorStateList.valueOf(color)
+                        spUtil.putMatrixTextColor(color)
+                        previewView.updateTextColor()
                     }
                 })
                 .showBottomSheet(supportFragmentManager)

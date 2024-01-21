@@ -21,11 +21,9 @@ class MatrixLiveWallpaperService  : WallpaperService(){
     }
 
     private inner class MatrixWallpaperEngine : WallpaperService.Engine() {
-        private var matrixCharset : String = "゠アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレワヰヱヲンヺ・ーヽヿ0123456789"
-        //private var matrixCharset : String = "゠ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ0123456789"
-        //private var matrixCharset : String = "゠абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789"
-        //private var matrixCharset : String = "゠กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮะาำเแโใไๅ็่้๊๋์0123456789"
-        //private var matrixCharset : String = "鼠牛虎兔龍蛇馬羊猴雞狗豬水火木金土仁義禮智信命愛和誌氣力道喜福夢強心忠勇德禪緣壽榮幸美花富錢囍豐貴神恨死活鬼高低矮靜醜輸勝贏飛悲歡吻怒笑性煩誠忍弟姐妹妻夫父母友春夏秋冬"
+        private lateinit var spUtil:PreferenceUtils
+        private lateinit var utils:Utils
+        private lateinit var matrixCharset : String
 
         private var speedInMillion:Long = 60
         private var matrixTextSize:Float =  10f // size in dip
@@ -33,7 +31,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
         private var chWidth:Float = 0f
         private var dropsEndIndex = mutableListOf<Int>()
         private var stringMatrix  = mutableListOf<String>()
-        //private var lenOfVisibleString = 0
+
         private var lenOfVerticalString = 0
 
         private lateinit var matrixPaint:Paint
@@ -77,16 +75,21 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             super.onSurfaceCreated(holder)
             val width = holder.surfaceFrame.width()
             val height = holder.surfaceFrame.height()
+
+            spUtil = PreferenceUtils(this@MatrixLiveWallpaperService)
+            utils = Utils(this@MatrixLiveWallpaperService)
+            matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+
             screenDensity = resources.displayMetrics.density
             matrixPaint = Paint().apply {
-                color = Color.GREEN
+                color = spUtil.getMatrixTextColor()
                 textSize = matrixTextSize * screenDensity
                 isAntiAlias = true
                 textAlign = Paint.Align.CENTER
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL) // 设置字体样式
                 maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.SOLID)
             }
-            matrixPaint.setShadowLayer(40f, 2f, 2f, Color.GREEN)
+            matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
 
 
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
