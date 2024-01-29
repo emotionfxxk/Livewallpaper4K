@@ -2,6 +2,7 @@ package com.argon.blue.matrixlivewallpaper
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.Color
 
 class PreferenceUtils(private val context: Context) {
@@ -21,5 +22,8 @@ class PreferenceUtils(private val context: Context) {
     }
     fun getMatrixCharset() : String? {
         return sp.getString(KEY_CHARSET, "Japanese(にほんご)")
+    }
+    fun registerListener(listener: OnSharedPreferenceChangeListener) {
+        sp.registerOnSharedPreferenceChangeListener(listener)
     }
 }

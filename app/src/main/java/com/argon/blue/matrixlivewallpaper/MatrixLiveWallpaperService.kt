@@ -1,16 +1,16 @@
 package com.argon.blue.matrixlivewallpaper
 
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.Bitmap
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.os.Handler
 import android.os.HandlerThread
 import android.service.wallpaper.WallpaperService
-import android.util.Log
 import android.view.SurfaceHolder
 import kotlin.random.Random
 
@@ -20,7 +20,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
         return MatrixWallpaperEngine()
     }
 
-    private inner class MatrixWallpaperEngine : WallpaperService.Engine() {
+    private inner class MatrixWallpaperEngine : WallpaperService.Engine(), OnSharedPreferenceChangeListener{
         private lateinit var spUtil:PreferenceUtils
         private lateinit var utils:Utils
         private lateinit var matrixCharset : String
@@ -40,6 +40,8 @@ class MatrixLiveWallpaperService  : WallpaperService(){
 
         private var bufferBitmap: Bitmap? = null
         private var bufferCanvas: Canvas? = null
+        private var mWidth = 0
+        private var mHeight = 0
 
         private var screenDensity = 0f
 
@@ -65,6 +67,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
         override fun onCreate(surfaceHolder: SurfaceHolder) {
             super.onCreate(surfaceHolder)
             surfaceHolder.setFormat(PixelFormat.RGBA_8888)
+
         }
 
         override fun onDestroy() {
@@ -73,10 +76,11 @@ class MatrixLiveWallpaperService  : WallpaperService(){
 
         override fun onSurfaceCreated(holder:SurfaceHolder) {
             super.onSurfaceCreated(holder)
-            val width = holder.surfaceFrame.width()
-            val height = holder.surfaceFrame.height()
+            mWidth = holder.surfaceFrame.width()
+            mHeight = holder.surfaceFrame.height()
 
             spUtil = PreferenceUtils(this@MatrixLiveWallpaperService)
+            spUtil.registerListener(this@MatrixWallpaperEngine)
             utils = Utils(this@MatrixLiveWallpaperService)
             matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
 
@@ -92,8 +96,8 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             matrixPaint.setShadowLayer(40f, 4f, 4f, spUtil.getMatrixTextColor())
 
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
-            matrixColumns = ( width / chWidth).toInt()
-            lenOfVerticalString = (height / matrixPaint.textSize).toInt() + 1;
+            matrixColumns = ( mWidth / chWidth).toInt()
+            lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
             for(i in 0 until matrixColumns) {
                 dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
@@ -111,7 +115,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
                 }
             }
 
-            bufferBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            bufferBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888)
             bufferCanvas = Canvas(bufferBitmap!!)
 
             startDraw()
@@ -157,10 +161,30 @@ class MatrixLiveWallpaperService  : WallpaperService(){
                     }
                 }
                 canvas = holder.lockCanvas()
-                canvas.drawBitmap(bufferBitmap!!, 0f, 0f, null)
+                canvas?.drawBitmap(bufferBitmap!!, 0f, 0f, null)
             } finally {
                 canvas?.let { holder.unlockCanvasAndPost(it) }
             }
+        }
+
+        override fun onSharedPreferenceChanged(
+            sharedPreferences: SharedPreferences?,
+            key: String?
+        ) {
+            stopDraw()
+            matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+            chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
+            matrixColumns = ( mWidth / chWidth).toInt()
+            lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
+
+            dropsEndIndex.clear()
+            stringMatrix.clear()
+            for(i in 0 until matrixColumns) {
+                dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
+                stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+            }
+            matrixPaint.color = spUtil.getMatrixTextColor()
+            startDraw()
         }
     }
 }
