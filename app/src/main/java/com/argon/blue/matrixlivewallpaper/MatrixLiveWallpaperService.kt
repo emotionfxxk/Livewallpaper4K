@@ -87,10 +87,9 @@ class MatrixLiveWallpaperService  : WallpaperService(){
                 isAntiAlias = true
                 textAlign = Paint.Align.CENTER
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL) // 设置字体样式
-                maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.SOLID)
+                maskFilter = BlurMaskFilter(20f, BlurMaskFilter.Blur.SOLID)
             }
-            matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
-
+            matrixPaint.setShadowLayer(40f, 4f, 4f, spUtil.getMatrixTextColor())
 
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
             matrixColumns = ( width / chWidth).toInt()
@@ -150,7 +149,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
                     val strColumn = stringMatrix[col]
                     val endIndex = dropsEndIndex[col]
                     bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos, yPos + endIndex * matrixPaint.textSize, matrixPaint)
-
+                    //bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos+4, yPos + endIndex * matrixPaint.textSize+4, matrixPaintBlur)
                     dropsEndIndex[col] = dropsEndIndex[col] + 1
                     if(dropsEndIndex[col] > lenOfVerticalString -1) {
                         dropsEndIndex[col] = 0

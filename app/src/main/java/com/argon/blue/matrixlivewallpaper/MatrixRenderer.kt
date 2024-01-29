@@ -89,7 +89,7 @@ class MatrixRenderer {
             isAntiAlias = true
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL) // 设置字体样式
-            maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.SOLID)
+            maskFilter = BlurMaskFilter(20f, BlurMaskFilter.Blur.SOLID)
         }
         matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
         startRendering()
