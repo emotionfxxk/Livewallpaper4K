@@ -4,7 +4,7 @@
     <string name="setting_label_text_color">text color</string>
     <string name="setting_label_charset">charset</string>
     <string name="setting_btn_apply_wallpaper">Preview &amp; Apply</string>
-
+    <string name="menu_privacy_policy">Privacy Policy</string>
     <string-array name="charset_spinner_options">
         <item>Japanese(にほんご)</item>
         <item>Korean(한국어)</item>
