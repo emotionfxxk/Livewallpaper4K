@@ -31,6 +31,7 @@ class MatrixLiveWallpaperService  : WallpaperService(){
         private var chWidth:Float = 0f
         private var dropsEndIndex = mutableListOf<Int>()
         private var stringMatrix  = mutableListOf<String>()
+        val lock = Any()
 
         private var lenOfVerticalString = 0
 
@@ -82,7 +83,8 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             spUtil = PreferenceUtils(this@MatrixLiveWallpaperService)
             spUtil.registerListener(this@MatrixWallpaperEngine)
             utils = Utils(this@MatrixLiveWallpaperService)
-            matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+            matrixCharset =
+                spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
 
             screenDensity = resources.displayMetrics.density
             matrixPaint = Paint().apply {
@@ -96,12 +98,14 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             matrixPaint.setShadowLayer(40f, 4f, 4f, spUtil.getMatrixTextColor())
 
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
-            matrixColumns = ( mWidth / chWidth).toInt()
+            matrixColumns = (mWidth / chWidth).toInt()
             lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
-            for(i in 0 until matrixColumns) {
-                dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
-                stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+            synchronized(lock) {
+                for (i in 0 until matrixColumns) {
+                    dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
+                    stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+                }
             }
 
             val drawingThread = HandlerThread("MatrixDrawingThread")
@@ -147,23 +151,35 @@ class MatrixLiveWallpaperService  : WallpaperService(){
 
             try {
                 bufferCanvas!!.drawColor(0x10000000)
-                for (col in 0 until matrixColumns) {
-                    val xPos = chWidth / 2f + chWidth * col
-                    var yPos = matrixPaint.textSize / 2f
-                    val strColumn = stringMatrix[col]
-                    val endIndex = dropsEndIndex[col]
-                    bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos, yPos + endIndex * matrixPaint.textSize, matrixPaint)
-                    //bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos+4, yPos + endIndex * matrixPaint.textSize+4, matrixPaintBlur)
-                    dropsEndIndex[col] = dropsEndIndex[col] + 1
-                    if(dropsEndIndex[col] > lenOfVerticalString -1) {
-                        dropsEndIndex[col] = 0
-                        stringMatrix[col] = generateRandomString(matrixCharset, lenOfVerticalString)
+                synchronized(lock) {
+                    for (col in 0 until matrixColumns) {
+                        val xPos = chWidth / 2f + chWidth * col
+                        var yPos = matrixPaint.textSize / 2f
+                        val strColumn = stringMatrix[col]
+                        val endIndex = dropsEndIndex[col]
+                        bufferCanvas!!.drawText(
+                            strColumn.get(endIndex).toString(),
+                            xPos,
+                            yPos + endIndex * matrixPaint.textSize,
+                            matrixPaint
+                        )
+                        //bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos+4, yPos + endIndex * matrixPaint.textSize+4, matrixPaintBlur)
+                        dropsEndIndex[col] = dropsEndIndex[col] + 1
+                        if (dropsEndIndex[col] > lenOfVerticalString - 1) {
+                            dropsEndIndex[col] = 0
+                            stringMatrix[col] =
+                                generateRandomString(matrixCharset, lenOfVerticalString)
+                        }
                     }
                 }
                 canvas = holder.lockCanvas()
                 canvas?.drawBitmap(bufferBitmap!!, 0f, 0f, null)
             } finally {
-                canvas?.let { holder.unlockCanvasAndPost(it) }
+                canvas?.let {
+                    if (holder.surface.isValid) {
+                        holder.unlockCanvasAndPost(it)
+                    }
+                }
             }
         }
 
@@ -172,16 +188,19 @@ class MatrixLiveWallpaperService  : WallpaperService(){
             key: String?
         ) {
             stopDraw()
-            matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
+            matrixCharset =
+                spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
             chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
-            matrixColumns = ( mWidth / chWidth).toInt()
+            matrixColumns = (mWidth / chWidth).toInt()
             lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
-            dropsEndIndex.clear()
-            stringMatrix.clear()
-            for(i in 0 until matrixColumns) {
-                dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
-                stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+            synchronized(lock) {
+                dropsEndIndex.clear()
+                stringMatrix.clear()
+                for (i in 0 until matrixColumns) {
+                    dropsEndIndex.add(Random.nextInt(lenOfVerticalString))
+                    stringMatrix.add(generateRandomString(matrixCharset, lenOfVerticalString))
+                }
             }
             matrixPaint.color = spUtil.getMatrixTextColor()
             startDraw()

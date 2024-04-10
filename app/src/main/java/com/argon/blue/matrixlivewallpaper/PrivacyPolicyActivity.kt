@@ -42,9 +42,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                 }
             }
         }
-        webView.loadUrl("https://sites.google.com/view/argonmobile/home")
-
-        //webView.loadUrl("https://sites.google.com/view/argonblue/home/privacy-policy")
+        webView.loadUrl("https://sites.google.com/view/argonblue/home/privacy-policy")
     }
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
