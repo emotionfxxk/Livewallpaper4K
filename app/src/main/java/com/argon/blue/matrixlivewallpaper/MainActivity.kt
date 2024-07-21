@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
         val spinner: Spinner = findViewById(R.id.charset_spinner)
         val options = resources.getStringArray(R.array.charset_spinner_options)
-        val adapter = ArrayAdapter<String>(this, R.layout.spinner_item, options)
+        val adapter = ArrayAdapter(this, R.layout.spinner_item, options)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 

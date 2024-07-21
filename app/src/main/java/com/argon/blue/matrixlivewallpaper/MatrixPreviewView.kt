@@ -34,7 +34,7 @@ class MatrixPreviewView @JvmOverloads constructor(
             // 执行相关操作
             renderer.initRenderer(this, context, viewWidth, viewHeight)
             renderer.startRendering()
-            Log.d("GAGA", "onMeasure ${viewWidth}, ${viewHeight}")
+            Log.d("GAGA", "onMeasure ${viewWidth}, $viewHeight")
         }
 
         // 设置 View 的尺寸规格

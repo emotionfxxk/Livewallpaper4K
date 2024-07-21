@@ -1,5 +1,6 @@
 package com.argon.blue.matrixlivewallpaper
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Window
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 class PrivacyPolicyActivity : AppCompatActivity() {
 
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.privacy_policy_activity)

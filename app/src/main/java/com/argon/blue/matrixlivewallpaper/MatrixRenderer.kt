@@ -68,7 +68,7 @@ class MatrixRenderer {
         if (!isInitialized) return
         stopRendering()
         matrixCharset = spUtil.getMatrixCharset()?.let { utils.getCharsetFromName(it) }.toString()
-        chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
+        chWidth = matrixPaint.measureText(matrixCharset[0].toString())
         matrixColumns = ( mWidth / chWidth).toInt()
         lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
@@ -117,7 +117,7 @@ class MatrixRenderer {
         matrixPaint.setShadowLayer(40f, 2f, 2f, spUtil.getMatrixTextColor())
 
 
-        chWidth = matrixPaint?.measureText(matrixCharset.get(0).toString())!!
+        chWidth = matrixPaint.measureText(matrixCharset[0].toString())
         matrixColumns = ( mWidth / chWidth).toInt()
         lenOfVerticalString = (mHeight / matrixPaint.textSize).toInt() + 1;
 
@@ -147,10 +147,10 @@ class MatrixRenderer {
             bufferCanvas!!.drawColor(0x10000000)
             for (col in 0 until matrixColumns) {
                 val xPos = chWidth / 2f + chWidth * col
-                var yPos = matrixPaint.textSize / 2f
+                val yPos = matrixPaint.textSize / 2f
                 val strColumn = stringMatrix[col]
                 val endIndex = dropsEndIndex[col]
-                bufferCanvas!!.drawText(strColumn.get(endIndex).toString(), xPos, yPos + endIndex * matrixPaint.textSize, matrixPaint)
+                bufferCanvas!!.drawText(strColumn[endIndex].toString(), xPos, yPos + endIndex * matrixPaint.textSize, matrixPaint)
 
                 dropsEndIndex[col] = dropsEndIndex[col] + 1
                 if(dropsEndIndex[col] > lenOfVerticalString -1) {
